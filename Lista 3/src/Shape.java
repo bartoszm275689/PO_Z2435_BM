@@ -1,9 +1,9 @@
 abstract class Shape {
 
-    double area (){}
+    public abstract double area();
 
-    double circumferance (){
+
+    public double circumference() {
         return 0.0;
     }
-
 }

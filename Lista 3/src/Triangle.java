@@ -9,9 +9,14 @@ public class Triangle extends Shape {
         this.sideC = sideC;
     }
 
+    public double area() {
+        double s = (sideA + sideB + sideC) / 2;
+        return Math.sqrt(s * (s - sideA) * (s - sideB) * (s - sideC));
+    }
 
 
     public double circumference() {
-        return sideA + sideB + sideC; // Obwód
+        return sideA + sideB + sideC;
     }
 
+}

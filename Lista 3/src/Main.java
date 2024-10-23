@@ -1,17 +1,19 @@
 public class Main {
     public static void main(String[] args) {
+        Shape square = new Square(4.0);
+        System.out.println("Pole kwadratu: " + square.area());
+        System.out.println("Obwód kwadratu: " + square.circumference());
 
+        Shape triangle = new Triangle(3.0, 4.0, 5.0);
+        System.out.println("Pole trójkąta: " + triangle.area());
+        System.out.println("Obwód trójkąta: " + triangle.circumference());
 
-
-        Calculator calc = new Calculator();
-
-
-
-        System.out.println("Pole powierzchni: " );
-        System.out.println("Obwód: " ;
-
-
+        Shape circle = new Circle(5.0);
+        System.out.println("Pole koła: " + circle.area());
+        System.out.println("Obwód koła: " + circle.circumference());
     }
 }
+
+
 
 
