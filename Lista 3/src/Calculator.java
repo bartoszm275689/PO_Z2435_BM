@@ -11,7 +11,7 @@ public class Calculator {
         return Math.abs(b.y - a.y);
     }
 
-    public double calculateAreaSum(Shape shape1, Shape shape2) {
+    public double calculatearea(Shape shape1, Shape shape2) {
         return shape1.area() + shape2.area();
     }
 }

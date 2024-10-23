@@ -15,10 +15,10 @@ public class Main {
         System.out.println("Pole koła: " + circle.area());
         System.out.println("Obwód koła: " + circle.circumference());
 
-        double totalarea = calculator.calculateAreaSum(square, triangle);
+        double totalarea = calculator.calculatearea(square, triangle);
         System.out.println("Suma pól: " + totalarea);
 
-        totalarea = calculator.calculateAreaSum(circle, square);
+        totalarea = calculator.calculatearea(circle, square);
         System.out.println("Suma pól: " + totalarea);
     }
 }
