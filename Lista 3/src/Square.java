@@ -1,9 +1,20 @@
 public class Square extends Shape {
     private double side;
 
-
     public Square(double side) {
-        this.side = side;
+        try {
+            if (side <= 0) {
+                throw new BadShapeException("Bok kwadratu musi być większy niż zero.");
+            } else if (side < 1) {
+                throw new BadShapeExceptionTwo("Bok kwadratu musi wynosić co najmniej 1.");
+            }
+            this.side = side;
+
+        } catch (BadShapeExceptionTwo exception) {
+            System.out.println("Wyjątek: " + exception.getMessage());
+        } catch (BadShapeException exception) {
+            System.out.println("Wyjątek: " + exception.getMessage());
+        }
     }
 
     @Override
@@ -16,6 +27,7 @@ public class Square extends Shape {
         return 4 * side;
     }
 }
+
 
 
 

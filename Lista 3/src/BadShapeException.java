@@ -1,10 +1,6 @@
-public class BadShapeException extends RuntimeException {
+public class BadShapeException extends Exception {
     public BadShapeException(String message) {
-      super(message);
+        super(message);
+        System.out.println(message);
     }
-     @Override
-     public String toString() {
-       return "Błąd: " + getMessage();
-     }
-  }
-
+}
