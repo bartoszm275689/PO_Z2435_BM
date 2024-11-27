@@ -70,14 +70,14 @@ class TheaterBookingApp : Application() {
         val backButton = Button("Powrót do menu")
         backButton.setOnAction {
             bookingStage.close()
-            primaryStage.show() // Powrót do głównego okna
+            primaryStage.show()
         }
 
         val seatMap = createSeatMap(event, confirmButton)
 
         bookingLayout.children.addAll(header, eventDetails, seatMap, successLabel, confirmButton, backButton)
 
-        val scene = Scene(bookingLayout, 800.0, 600.0)
+        val scene = Scene(bookingLayout, 800.0, 700.0)
         bookingStage.title = "Rezerwacja miejsc - ${event.name}"
         bookingStage.scene = scene
         bookingStage.show()
