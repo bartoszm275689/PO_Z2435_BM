@@ -1,5 +1,7 @@
+import java.time.LocalDateTime
+
 data class Reservation(
-    val id: Int,
-    val event: Event,
-    val seats: List<Seat>
+    val eventName: String,
+    val eventDate: LocalDateTime,
+    val seats: List<SeatPosition>
 )

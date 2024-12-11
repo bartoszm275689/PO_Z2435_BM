@@ -1,21 +1,19 @@
 import javafx.application.Application
 import javafx.geometry.Insets
 import javafx.scene.Scene
-import javafx.scene.control.Button
-import javafx.scene.control.Label
-import javafx.scene.control.PasswordField
-import javafx.scene.control.TextField
+import javafx.scene.control.*
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.stage.Stage
 import java.time.LocalDateTime
 
+
 class TheaterBookingApp : Application() {
 
     private val events = listOf(
-        Event("Wydarzenie 1", LocalDateTime.now(), Venue("Sala Główna", 12, 10)),
-        Event("Wydarzenie 2", LocalDateTime.now(), Venue("Sala Główna", 12, 10)),
-        Event("Wydarzenie 3", LocalDateTime.now(), Venue("Sala Główna", 12, 10))
+        Event("Mistrz i Małgorzata", LocalDateTime.parse("2024-12-11T14:30:00"), Venue("Sala Główna", 12, 10)),
+        Event("Antygona", LocalDateTime.parse("2024-12-11T14:30:00"), Venue("Sala Główna", 12, 10)),
+        Event("Koty", LocalDateTime.parse("2024-12-11T14:30:00"), Venue("Sala Główna", 12, 10))
     )
 
     private val accounts = mutableMapOf<String, Account>()
@@ -122,6 +120,16 @@ class TheaterBookingApp : Application() {
         val mainLayout = VBox(10.0)
         mainLayout.padding = Insets(10.0)
 
+        val loggedInUserLabel = Label("Zalogowany jako: ${loggedInAccount?.username}")
+        loggedInUserLabel.style = "-fx-font-size: 14px; -fx-font-weight: bold;"
+
+        val logoutButton = Button("Wyloguj")
+        logoutButton.setOnAction {
+            loggedInAccount = null
+            primaryStage.close()
+            showLoginWindow(Stage())
+        }
+
         val header = Label("Wybierz wydarzenie")
         header.style = "-fx-font-size: 16px; -fx-font-weight: bold;"
 
@@ -139,11 +147,11 @@ class TheaterBookingApp : Application() {
         val reservationsList = VBox(10.0)
         updateReservationsList(reservationsList, primaryStage)
 
-        mainLayout.children.addAll(header)
+        mainLayout.children.addAll(loggedInUserLabel, logoutButton, header)
         mainLayout.children.addAll(eventButtons)
         mainLayout.children.addAll(reservationsHeader, reservationsList)
 
-        val scene = Scene(mainLayout, 400.0, 400.0)
+        val scene = Scene(mainLayout, 800.0, 600.0)
         primaryStage.scene = scene
         primaryStage.show()
     }
@@ -151,14 +159,33 @@ class TheaterBookingApp : Application() {
     private fun updateReservationsList(reservationsList: VBox, primaryStage: Stage) {
         reservationsList.children.clear()
         loggedInAccount?.reservations?.forEach { reservation ->
-            val reservationLabel = Label(reservation)
+            val reservationBox = VBox(5.0)
+
+            val eventInfoLabel = Label("Wydarzenie: ${reservation.eventName}, Data: ${reservation.eventDate}")
+            eventInfoLabel.style = "-fx-font-size: 14px; -fx-font-weight: bold;"
+
+            reservationBox.children.add(eventInfoLabel)
+
+            reservation.seats.forEach { pos ->
+                val seatLabel = Label("Rząd: ${pos.row+1}, Miejsce: ${pos.col+1}")
+                seatLabel.style = "-fx-font-weight: bold;"
+                reservationBox.children.add(seatLabel)
+            }
+
             val cancelButton = Button("Anuluj")
             cancelButton.setOnAction {
+                val event = events.find { it.name == reservation.eventName && it.date == reservation.eventDate }
+                if (event != null) {
+                    reservation.seats.forEach { seatPos ->
+                        event.venue.seatMap[seatPos.row][seatPos.col].isAvailable = true
+                    }
+                }
                 loggedInAccount?.reservations?.remove(reservation)
                 updateReservationsList(reservationsList, primaryStage)
             }
-            val reservationItem = VBox(5.0, reservationLabel, cancelButton)
-            reservationsList.children.add(reservationItem)
+
+            reservationBox.children.add(cancelButton)
+            reservationsList.children.add(reservationBox)
         }
     }
 
@@ -180,11 +207,14 @@ class TheaterBookingApp : Application() {
         val successLabel = Label("")
         successLabel.style = "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: green;"
 
+        val chosenSeats = mutableListOf<SeatPosition>()
+
         val confirmButton = Button("Zarezerwuj")
         confirmButton.isDisable = true
         confirmButton.setOnAction {
-            loggedInAccount?.reservations?.add("${event.name} - ${event.date}")
-            successLabel.text = "Rezerwacja zakończona."
+            val reservation = Reservation(event.name, event.date, chosenSeats.toList())
+            loggedInAccount?.reservations?.add(reservation)
+            successLabel.text = "Rezerwacja zakończona. Miejsca zarezerwowane."
             confirmButton.isDisable = true
         }
 
@@ -194,11 +224,11 @@ class TheaterBookingApp : Application() {
             showMainMenu(primaryStage)
         }
 
-        val seatMap = createSeatMap(event, confirmButton)
+        val seatMap = createSeatMap(event, confirmButton, chosenSeats)
 
         bookingLayout.children.addAll(header, eventDetails, seatMap, successLabel, confirmButton, backButton)
 
-        val scene = Scene(bookingLayout, 800.0, 700.0)
+        val scene = Scene(bookingLayout, 1300.0, 600.0)
         bookingStage.title = "Rezerwacja miejsc - ${event.name}"
         bookingStage.scene = scene
         bookingStage.show()
@@ -206,7 +236,7 @@ class TheaterBookingApp : Application() {
         primaryStage.hide()
     }
 
-                private fun createSeatMap(event: Event, confirmButton: Button): GridPane {
+    private fun createSeatMap(event: Event, confirmButton: Button, chosenSeats: MutableList<SeatPosition>): GridPane {
         val seatGrid = GridPane()
         seatGrid.hgap = 5.0
         seatGrid.vgap = 5.0
@@ -214,7 +244,7 @@ class TheaterBookingApp : Application() {
 
         event.venue.seatMap.forEachIndexed { rowIndex, row ->
             row.forEachIndexed { seatIndex, seat ->
-                val seatButton = Button("${rowIndex + 1}-${seatIndex + 1}")
+                val seatButton = Button("Rząd ${rowIndex + 1}, Miejsce ${seatIndex + 1}")
                 seatButton.style = if (seat.isAvailable) {
                     "-fx-background-color: green; -fx-text-fill: white;"
                 } else {
@@ -225,10 +255,15 @@ class TheaterBookingApp : Application() {
                     if (seat.isAvailable) {
                         seat.isAvailable = false
                         seatButton.style = "-fx-background-color: red; -fx-text-fill: white;"
+                        chosenSeats.add(SeatPosition(rowIndex, seatIndex))
+                    } else {
+                        seat.isAvailable = true
+                        seatButton.style = "-fx-background-color: green; -fx-text-fill: white;"
+                        chosenSeats.removeIf { it.row == rowIndex && it.col == seatIndex }
                     }
 
-                    val anyAvailable = event.venue.seatMap.flatten().any { it.isAvailable }
-                    confirmButton.isDisable = !anyAvailable
+                    val anyChosen = chosenSeats.isNotEmpty()
+                    confirmButton.isDisable = !anyChosen
                 }
 
                 seatGrid.add(seatButton, seatIndex, rowIndex)
