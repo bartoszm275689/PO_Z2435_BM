@@ -7,11 +7,10 @@ import javafx.scene.layout.VBox
 import javafx.stage.Stage
 import java.time.LocalDateTime
 
-
 class TheaterBookingApp : Application() {
 
     private val events = listOf(
-        Event("Mistrz i Małgorzata", LocalDateTime.parse("2024-12-11T14:30:00"), Venue("Sala Główna", 12, 10)),
+        Event("Czarodziejski flet", LocalDateTime.parse("2024-12-11T14:30:00"), Venue("Sala Główna", 12, 10)),
         Event("Antygona", LocalDateTime.parse("2024-12-11T14:30:00"), Venue("Sala Główna", 12, 10)),
         Event("Koty", LocalDateTime.parse("2024-12-11T14:30:00"), Venue("Sala Główna", 12, 10))
     )
@@ -251,19 +250,17 @@ class TheaterBookingApp : Application() {
                     "-fx-background-color: red; -fx-text-fill: white;"
                 }
 
-                seatButton.setOnAction {
-                    if (seat.isAvailable) {
+                if (!seat.isAvailable) {
+                    seatButton.isDisable = true
+                } else {
+                    seatButton.setOnAction {
                         seat.isAvailable = false
                         seatButton.style = "-fx-background-color: red; -fx-text-fill: white;"
                         chosenSeats.add(SeatPosition(rowIndex, seatIndex))
-                    } else {
-                        seat.isAvailable = true
-                        seatButton.style = "-fx-background-color: green; -fx-text-fill: white;"
-                        chosenSeats.removeIf { it.row == rowIndex && it.col == seatIndex }
-                    }
 
-                    val anyChosen = chosenSeats.isNotEmpty()
-                    confirmButton.isDisable = !anyChosen
+                        val anyChosen = chosenSeats.isNotEmpty()
+                        confirmButton.isDisable = !anyChosen
+                    }
                 }
 
                 seatGrid.add(seatButton, seatIndex, rowIndex)
@@ -275,5 +272,11 @@ class TheaterBookingApp : Application() {
 }
 
 fun main() {
-    Application.launch(TheaterBookingApp::class.java)
+
+    val url = "jdbc:mysql://localhost:3306/theater_booking"
+    val user = "root"
+    val password = "panzer1979"
+
+
+     Application.launch(TheaterBookingApp::class.java)
 }
