@@ -73,6 +73,46 @@ class DatabaseManager(private val url: String, private val user: String, private
         return events
     }
 
+    fun getUserReservations(username: String): List<Reservation> {
+        val reservations = mutableListOf<Reservation>()
+        val sql = """
+        SELECT e.name AS event_name, e.date AS event_date, r.seat_row, r.seat_col 
+        FROM reservations r 
+        JOIN accounts a ON r.account_id = a.id 
+        JOIN events e ON r.event_id = e.id 
+        WHERE a.username = ?
+    """
+        connection?.prepareStatement(sql)?.use { statement ->
+            statement.setString(1, username)
+            val resultSet = statement.executeQuery()
+            while (resultSet.next()) {
+                val eventName = resultSet.getString("event_name")
+                val eventDate = resultSet.getTimestamp("event_date").toLocalDateTime()
+                val seatRow = resultSet.getInt("seat_row")
+                val seatCol = resultSet.getInt("seat_col")
+                val seat = SeatPosition(seatRow, seatCol)
+                reservations.add(Reservation(eventName, eventDate, listOf(seat)))
+            }
+        }
+        return reservations
+    }
+
+    fun cancelReservation(eventName: String, seat: SeatPosition) {
+        val sql = """
+        DELETE r 
+        FROM reservations r 
+        JOIN events e ON r.event_id = e.id 
+        WHERE e.name = ? AND r.seat_row = ? AND r.seat_col = ?
+    """
+        connection?.prepareStatement(sql)?.use { statement ->
+            statement.setString(1, eventName)
+            statement.setInt(2, seat.row)
+            statement.setInt(3, seat.col)
+            statement.executeUpdate()
+        }
+    }
+
+
     fun addReservation(accountId: Int, eventId: Int, row: Int, col: Int) {
         val sql = "INSERT INTO reservations (account_id, event_id, seat_row, seat_col) VALUES (?, ?, ?, ?)"
         connection?.prepareStatement(sql)?.use { statement ->

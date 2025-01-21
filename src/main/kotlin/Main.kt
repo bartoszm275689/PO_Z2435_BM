@@ -135,6 +135,7 @@ class TheaterBookingApp : Application() {
         val header = Label("Wybierz wydarzenie")
         header.style = "-fx-font-size: 16px; -fx-font-weight: bold;"
 
+        // Wyświetlanie wydarzeń
         val eventButtons = databaseManager.getEvents().map { event ->
             Button(event.name).apply {
                 setOnAction {
@@ -143,33 +144,130 @@ class TheaterBookingApp : Application() {
             }
         }
 
+        // Sekcja z zarezerwowanymi miejscami
+        val reservationHeader = Label("Twoje rezerwacje:")
+        reservationHeader.style = "-fx-font-size: 16px; -fx-font-weight: bold;"
+
+        val reservationList = VBox(5.0)
+        loggedInAccount?.let { account ->
+            val reservations = databaseManager.getUserReservations(account.username)
+            reservations.forEach { reservation ->
+                val seatLabel = Label("Wydarzenie: ${reservation.eventName}, Rząd: ${reservation.seats[0].row + 1}, Miejsce: ${reservation.seats[0].col + 1}")
+                val cancelButton = Button("Anuluj").apply {
+                    setOnAction {
+                        databaseManager.cancelReservation(reservation.eventName, reservation.seats[0])
+                        showMainMenu(primaryStage) // Odśwież menu po anulowaniu
+                    }
+                }
+                val reservationEntry = VBox(10.0, seatLabel, cancelButton)
+                reservationList.children.add(reservationEntry)
+            }
+        }
+
         mainLayout.children.addAll(loggedInUserLabel, logoutButton, header)
         mainLayout.children.addAll(eventButtons)
+        mainLayout.children.addAll(reservationHeader, reservationList)
 
         val scene = Scene(mainLayout, 800.0, 600.0)
         primaryStage.scene = scene
         primaryStage.show()
     }
 
+
     private fun openBookingWindow(event: Event, primaryStage: Stage) {
         val bookingStage = Stage()
+        bookingStage.title = "Rezerwacja - ${event.name}"
+
         val bookingLayout = VBox(10.0)
         bookingLayout.padding = Insets(10.0)
 
         val header = Label("Rezerwacja miejsc na: ${event.name}")
         header.style = "-fx-font-size: 16px; -fx-font-weight: bold;"
 
+        // Siatka miejsc
         val seatMap = GridPane()
         seatMap.hgap = 5.0
         seatMap.vgap = 5.0
 
-        bookingLayout.children.addAll(header, seatMap)
+        val venue = event.venue
+        val selectedSeats = mutableListOf<SeatPosition>()
 
-        val scene = Scene(bookingLayout, 600.0, 400.0)
+        // Wypełnienie siatki miejscami
+        for (row in 0 until venue.rows) {
+            for (col in 0 until venue.cols) {
+                val seat = venue.seatMap[row][col]
+                val seatButton = Button("Rząd ${row + 1}, Miejsce ${col + 1}")
+                seatButton.style = if (seat.isAvailable) "-fx-background-color: green;" else "-fx-background-color: red;"
+                seatButton.isDisable = !seat.isAvailable
+
+                seatButton.setOnAction {
+                    if (seat.isAvailable) {
+                        if (selectedSeats.contains(SeatPosition(row, col))) {
+                            // Usuń miejsce z listy i zmień kolor na zielony
+                            selectedSeats.remove(SeatPosition(row, col))
+                            seatButton.style = "-fx-background-color: green;"
+                        } else {
+                            // Dodaj miejsce do listy i zmień kolor na żółty
+                            selectedSeats.add(SeatPosition(row, col))
+                            seatButton.style = "-fx-background-color: yellow;"
+                        }
+                    }
+                }
+
+                seatMap.add(seatButton, col, row)
+            }
+        }
+
+        // Przycisk potwierdzający rezerwację
+        val confirmButton = Button("Potwierdź rezerwację")
+        confirmButton.style = "-fx-font-size: 14px; -fx-font-weight: bold;"
+
+        confirmButton.setOnAction {
+            if (selectedSeats.isEmpty()) {
+                val alert = Alert(Alert.AlertType.WARNING)
+                alert.title = "Brak wybranych miejsc"
+                alert.headerText = null
+                alert.contentText = "Nie wybrałeś żadnych miejsc do rezerwacji!"
+                alert.showAndWait()
+            } else {
+                loggedInAccount?.let { account ->
+                    for (seat in selectedSeats) {
+                        // Zaktualizuj bazę danych dla każdego wybranego miejsca
+                        databaseManager.addReservation(
+                            accountId = 1, // Zmień na właściwe ID konta
+                            eventId = 1,   // Zmień na właściwe ID wydarzenia
+                            row = seat.row,
+                            col = seat.col
+                        )
+                        // Ustaw miejsce jako zajęte
+                        venue.seatMap[seat.row][seat.col].isAvailable = false
+                    }
+
+                    val alert = Alert(Alert.AlertType.INFORMATION)
+                    alert.title = "Rezerwacja potwierdzona"
+                    alert.headerText = null
+                    alert.contentText = "Pomyślnie zarezerwowano miejsca!"
+                    alert.showAndWait()
+
+                    bookingStage.close()
+                } ?: run {
+                    val alert = Alert(Alert.AlertType.ERROR)
+                    alert.title = "Błąd"
+                    alert.headerText = null
+                    alert.contentText = "Musisz być zalogowany, aby zarezerwować miejsca."
+                    alert.showAndWait()
+                }
+            }
+        }
+
+        bookingLayout.children.addAll(header, seatMap, confirmButton)
+
+        val scene = Scene(bookingLayout, 800.0, 600.0)
         bookingStage.scene = scene
-        bookingStage.title = "Rezerwacja - ${event.name}"
         bookingStage.show()
     }
+
+
 }
 
 fun main() {
