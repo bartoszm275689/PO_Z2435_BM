@@ -140,30 +140,22 @@ class DatabaseManager(private val url: String,
         SET s.is_available = TRUE
         WHERE e.name = ? AND s.row = ? AND s.col = ?
     """
-
-            try {
-                connection?.autoCommit = false
-
-                connection?.prepareStatement(deleteReservationSql)?.use { statement ->
+            connection?.autoCommit = false
+            connection?.prepareStatement(deleteReservationSql)?.use { statement ->
                     statement.setString(1, eventName)
                     statement.setInt(2, seat.row)
                     statement.setInt(3, seat.col)
                     statement.executeUpdate()
-                }
-
-                connection?.prepareStatement(updateSeatSql)?.use { statement ->
-                    statement.setString(1, eventName)
-                    statement.setInt(2, seat.row)
-                    statement.setInt(3, seat.col)
-                    statement.executeUpdate()
-                }
-
-                connection?.commit()
-            } catch (e: Exception) {
-                connection?.rollback()
-            } finally {
-                connection?.autoCommit = true
             }
+            connection?.prepareStatement(updateSeatSql)?.use { statement ->
+                    statement.setString(1, eventName)
+                    statement.setInt(2, seat.row)
+                    statement.setInt(3, seat.col)
+                    statement.executeUpdate()
+            }
+            connection?.commit()
+            connection?.autoCommit = true
+
         }
 
 
