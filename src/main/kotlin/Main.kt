@@ -144,7 +144,6 @@ class TheaterBookingApp : Application() {
             }
         }
 
-        // Sekcja z zarezerwowanymi miejscami
         val reservationHeader = Label("Twoje rezerwacje:")
         reservationHeader.style = "-fx-font-size: 16px; -fx-font-weight: bold;"
 
@@ -184,7 +183,6 @@ class TheaterBookingApp : Application() {
         val header = Label("Rezerwacja miejsc na: ${event.name}")
         header.style = "-fx-font-size: 16px; -fx-font-weight: bold;"
 
-        // Siatka miejsc
         val seatMap = GridPane()
         seatMap.hgap = 5.0
         seatMap.vgap = 5.0
@@ -192,7 +190,6 @@ class TheaterBookingApp : Application() {
         val venue = event.venue
         val selectedSeats = mutableListOf<SeatPosition>()
 
-        // Wypełnienie siatki miejscami
         for (row in 0 until venue.rows) {
             for (col in 0 until venue.cols) {
                 val seat = venue.seatMap[row][col]
@@ -203,7 +200,6 @@ class TheaterBookingApp : Application() {
                 seatButton.setOnAction {
                     if (seat.isAvailable) {
                         if (selectedSeats.contains(SeatPosition(row, col))) {
-                            // Usuń miejsce z listy i zmień kolor na zielony
                             selectedSeats.remove(SeatPosition(row, col))
                             seatButton.style = "-fx-background-color: green;"
                         } else {
@@ -218,7 +214,6 @@ class TheaterBookingApp : Application() {
             }
         }
 
-        // Przycisk potwierdzający rezerwację
         val confirmButton = Button("Potwierdź rezerwację")
         confirmButton.style = "-fx-font-size: 14px; -fx-font-weight: bold;"
 
@@ -232,14 +227,12 @@ class TheaterBookingApp : Application() {
             } else {
                 loggedInAccount?.let { account ->
                     for (seat in selectedSeats) {
-                        // Zaktualizuj bazę danych dla każdego wybranego miejsca
                         databaseManager.addReservation(
-                            accountId = 1, // Zmień na właściwe ID konta
-                            eventId = 1,   // Zmień na właściwe ID wydarzenia
+                            accountId = 1,
+                            eventId = 1,
                             row = seat.row,
                             col = seat.col
                         )
-                        // Ustaw miejsce jako zajęte
                         venue.seatMap[seat.row][seat.col].isAvailable = false
                     }
 
