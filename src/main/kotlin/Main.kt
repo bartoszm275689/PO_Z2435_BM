@@ -17,6 +17,7 @@ class TheaterBookingApp : Application() {
         user = "root",
         password = "panzer1979"
     )
+    val connection = databaseManager.getConnection()
 
     private val accounts = mutableMapOf<String, Account>()
     private var loggedInAccount: Account? = null
@@ -189,28 +190,7 @@ class TheaterBookingApp : Application() {
         val venue = event.venue
         val selectedSeats = mutableListOf<SeatPosition>()
 
-        for (row in 0 until venue.rows) {
-            for (col in 0 until venue.cols) {
-                val seat = venue.seatMap[row][col]
-                val seatButton = Button("Rząd ${row + 1}, Miejsce ${col + 1}")
-                seatButton.style = if (seat.isAvailable) "-fx-background-color: green;" else "-fx-background-color: red;"
-                seatButton.isDisable = !seat.isAvailable
-
-                seatButton.setOnAction {
-                    if (seat.isAvailable) {
-                        if (selectedSeats.contains(SeatPosition(row, col))) {
-                            selectedSeats.remove(SeatPosition(row, col))
-                            seatButton.style = "-fx-background-color: green;"
-                        } else {
-                            selectedSeats.add(SeatPosition(row, col))
-                            seatButton.style = "-fx-background-color: yellow;"
-                        }
-                    }
-                }
-
-                seatMap.add(seatButton, col, row)
-            }
-        }
+        loadSeats(event.id, seatMap, selectedSeats)
 
         val confirmButton = Button("Potwierdź rezerwację")
         confirmButton.style = "-fx-font-size: 14px; -fx-font-weight: bold;"
@@ -242,6 +222,12 @@ class TheaterBookingApp : Application() {
 
                     bookingStage.close()
                     showMainMenu(primaryStage)
+                } ?: run {
+                    val alert = Alert(Alert.AlertType.ERROR)
+                    alert.title = "Błąd"
+                    alert.headerText = null
+                    alert.contentText = "Musisz być zalogowany, aby zarezerwować miejsca."
+                    alert.showAndWait()
                 }
             }
         }
@@ -260,6 +246,39 @@ class TheaterBookingApp : Application() {
         bookingStage.show()
     }
 
+    private fun loadSeats(eventId: Int, seatMap: GridPane, selectedSeats: MutableList<SeatPosition>) {
+        val connection = databaseManager.getConnection()
+        val sql = "SELECT `row`, `col`, is_available FROM seats WHERE event_id = ?"
+        connection?.prepareStatement(sql)?.use { statement ->
+            statement.setInt(1, eventId)
+            val resultSet = statement.executeQuery()
+
+            while (resultSet.next()) {
+                val row = resultSet.getInt("row")
+                val col = resultSet.getInt("col")
+                val isAvailable = resultSet.getBoolean("is_available")
+
+                val seatButton = Button("Rząd ${row + 1}, Miejsce ${col + 1}")
+                seatButton.isDisable = !isAvailable
+
+                seatButton.style = if (isAvailable) "-fx-background-color: green;" else "-fx-background-color: red;"
+
+                seatButton.setOnAction {
+                    if (isAvailable) {
+                        if (selectedSeats.contains(SeatPosition(row, col))) {
+                            selectedSeats.remove(SeatPosition(row, col))
+                            seatButton.style = "-fx-background-color: green;"
+                        } else {
+                            selectedSeats.add(SeatPosition(row, col))
+                            seatButton.style = "-fx-background-color: yellow;"
+                        }
+                    }
+                }
+
+                seatMap.add(seatButton, col, row)
+            }
+        }
+    }
 
 }
 
