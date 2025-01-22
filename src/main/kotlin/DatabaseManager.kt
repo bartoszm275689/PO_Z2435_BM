@@ -127,50 +127,49 @@ class DatabaseManager(private val url: String,
         return reservations
     }
 
-    fun cancelReservation(eventName: String, seat: SeatPosition) {
-        val deleteReservationSql = """
+        fun cancelReservation(eventName: String, seat: SeatPosition) {
+            val deleteReservationSql = """
         DELETE r 
         FROM reservations r 
         JOIN events e ON r.event_id = e.id 
         WHERE e.name = ? AND r.seat_row = ? AND r.seat_col = ?
     """
-        val updateSeatSql = """
+            val updateSeatSql = """
         UPDATE seats s
         JOIN events e ON s.event_id = e.id
         SET s.is_available = TRUE
         WHERE e.name = ? AND s.row = ? AND s.col = ?
     """
 
-        try {
-            connection?.autoCommit = false
+            try {
+                connection?.autoCommit = false
 
-            connection?.prepareStatement(deleteReservationSql)?.use { statement ->
-                statement.setString(1, eventName)
-                statement.setInt(2, seat.row)
-                statement.setInt(3, seat.col)
-                statement.executeUpdate()
+                connection?.prepareStatement(deleteReservationSql)?.use { statement ->
+                    statement.setString(1, eventName)
+                    statement.setInt(2, seat.row)
+                    statement.setInt(3, seat.col)
+                    statement.executeUpdate()
+                }
+
+                connection?.prepareStatement(updateSeatSql)?.use { statement ->
+                    statement.setString(1, eventName)
+                    statement.setInt(2, seat.row)
+                    statement.setInt(3, seat.col)
+                    statement.executeUpdate()
+                }
+
+                connection?.commit()
+            } catch (e: Exception) {
+                connection?.rollback()
+            } finally {
+                connection?.autoCommit = true
             }
-
-            connection?.prepareStatement(updateSeatSql)?.use { statement ->
-                statement.setString(1, eventName)
-                statement.setInt(2, seat.row)
-                statement.setInt(3, seat.col)
-                statement.executeUpdate()
-            }
-
-            connection?.commit()
-            println("Rezerwacja anulowana dla wydarzenia $eventName, Rząd ${seat.row + 1}, Miejsce ${seat.col + 1}.")
-        } catch (e: Exception) {
-            connection?.rollback()
-            println("Błąd podczas anulowania rezerwacji: ${e.message}")
-        } finally {
-            connection?.autoCommit = true
         }
-    }
 
 
 
-    fun getSeatsForEvent(eventId: Int): Array<Array<Seat>> {
+
+        fun getSeatsForEvent(eventId: Int): Array<Array<Seat>> {
         val sql = "SELECT `row`, `col`, is_available FROM seats WHERE event_id = ?"
         val seatMap = Array(8) { Array(8) { Seat(true) } }
 

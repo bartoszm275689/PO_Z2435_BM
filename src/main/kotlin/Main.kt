@@ -12,9 +12,9 @@ class TheaterBookingApp : Application() {
         user = "root",
         password = "panzer1979"
     )
-    val connection = databaseManager.getConnection()
+    //val connection = databaseManager.getConnection()
 
-    private val accounts = mutableMapOf<String, Account>()
+    //private val accounts = mutableMapOf<String, Account>()
     private var loggedInAccount: Account? = null
 
     override fun start(primaryStage: Stage) {
