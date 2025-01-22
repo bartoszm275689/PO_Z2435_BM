@@ -2,7 +2,11 @@ import java.sql.Connection
 import java.sql.DriverManager
 import kotlin.use
 
-class DatabaseManager(private val url: String, private val user: String, private val password: String) {
+class DatabaseManager(private val url: String,
+                      private val user: String,
+                      private val password: String)
+
+    {
     private var connection: Connection? = null
 
     init {
@@ -10,12 +14,7 @@ class DatabaseManager(private val url: String, private val user: String, private
     }
 
     private fun connect() {
-        try {
             connection = DriverManager.getConnection(url, user, password)
-            println("Połączono z bazą danych!")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
     }
 
     fun getConnection(): Connection? {
@@ -145,7 +144,6 @@ class DatabaseManager(private val url: String, private val user: String, private
         try {
             connection?.autoCommit = false
 
-            // Usunięcie rezerwacji
             connection?.prepareStatement(deleteReservationSql)?.use { statement ->
                 statement.setString(1, eventName)
                 statement.setInt(2, seat.row)
@@ -153,7 +151,6 @@ class DatabaseManager(private val url: String, private val user: String, private
                 statement.executeUpdate()
             }
 
-            // Aktualizacja statusu miejsca na "dostępne"
             connection?.prepareStatement(updateSeatSql)?.use { statement ->
                 statement.setString(1, eventName)
                 statement.setInt(2, seat.row)

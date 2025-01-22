@@ -5,11 +5,6 @@ import javafx.scene.control.*
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.VBox
 import javafx.stage.Stage
-import java.sql.Connection
-import java.sql.DriverManager
-import java.time.LocalDateTime
-
-
 
 class TheaterBookingApp : Application() {
     private val databaseManager = DatabaseManager(
