@@ -28,12 +28,13 @@ class DatabaseManager(private val url: String, private val user: String, private
     }
 
     fun getAccount(username: String): Account? {
-        val sql = "SELECT * FROM accounts WHERE username = ?"
+        val sql = "SELECT id, username, password FROM accounts WHERE username = ?"
         connection?.prepareStatement(sql)?.use { statement ->
             statement.setString(1, username)
             val resultSet = statement.executeQuery()
             if (resultSet.next()) {
                 return Account(
+                    id = resultSet.getInt("id"),
                     username = resultSet.getString("username"),
                     password = resultSet.getString("password")
                 )
@@ -41,6 +42,7 @@ class DatabaseManager(private val url: String, private val user: String, private
         }
         return null
     }
+
 
     fun addEvent(event: Event) {
         val sql = "INSERT INTO events (name, date, venue_name, rows, cols) VALUES (?, ?, ?, ?, ?)"
@@ -55,11 +57,12 @@ class DatabaseManager(private val url: String, private val user: String, private
     }
 
     fun getEvents(): List<Event> {
-        val sql = "SELECT * FROM events"
+        val sql = "SELECT id, name, date, venue_name, `rows`, `cols` FROM events"
         val events = mutableListOf<Event>()
         connection?.createStatement()?.use { statement ->
             val resultSet = statement.executeQuery(sql)
             while (resultSet.next()) {
+                val id = resultSet.getInt("id")
                 val name = resultSet.getString("name")
                 val date = resultSet.getTimestamp("date").toLocalDateTime()
                 val venueName = resultSet.getString("venue_name")
@@ -67,11 +70,12 @@ class DatabaseManager(private val url: String, private val user: String, private
                 val cols = resultSet.getInt("cols")
 
                 val venue = Venue(venueName, rows, cols)
-                events.add(Event(name, date, venue))
+                events.add(Event(id, name, date, venue))
             }
         }
         return events
     }
+
 
     fun getUserReservations(username: String): List<Reservation> {
         val reservations = mutableListOf<Reservation>()

@@ -1,3 +1,5 @@
-class Account(val username: String, val password: String) {
-    val reservations = mutableListOf<Reservation>()
-}
+data class Account(
+    val id: Int,
+    val username: String,
+    val password: String
+)

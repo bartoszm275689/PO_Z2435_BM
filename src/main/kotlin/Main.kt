@@ -203,7 +203,6 @@ class TheaterBookingApp : Application() {
                             selectedSeats.remove(SeatPosition(row, col))
                             seatButton.style = "-fx-background-color: green;"
                         } else {
-                            // Dodaj miejsce do listy i zmień kolor na żółty
                             selectedSeats.add(SeatPosition(row, col))
                             seatButton.style = "-fx-background-color: yellow;"
                         }
@@ -228,8 +227,8 @@ class TheaterBookingApp : Application() {
                 loggedInAccount?.let { account ->
                     for (seat in selectedSeats) {
                         databaseManager.addReservation(
-                            accountId = 1,
-                            eventId = 1,
+                            accountId = account.id,
+                            eventId = event.id,
                             row = seat.row,
                             col = seat.col
                         )
@@ -243,6 +242,7 @@ class TheaterBookingApp : Application() {
                     alert.showAndWait()
 
                     bookingStage.close()
+                    showMainMenu(primaryStage)
                 } ?: run {
                     val alert = Alert(Alert.AlertType.ERROR)
                     alert.title = "Błąd"
@@ -259,6 +259,7 @@ class TheaterBookingApp : Application() {
         bookingStage.scene = scene
         bookingStage.show()
     }
+
 
 
 }
