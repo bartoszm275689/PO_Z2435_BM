@@ -6,7 +6,7 @@ class DatabaseManager(private val url: String,
                       private val user: String,
                       private val password: String)
 
-    {
+{
     private var connection: Connection? = null
 
     init {
@@ -51,7 +51,6 @@ class DatabaseManager(private val url: String,
         val reservationSql = "INSERT INTO reservations (account_id, event_id, seat_row, seat_col) VALUES (?, ?, ?, ?)"
         val updateSeatSql = "UPDATE seats SET is_available = FALSE WHERE event_id = ? AND `row` = ? AND `col` = ?"
 
-        try {
             connection?.autoCommit = false
 
             connection?.prepareStatement(reservationSql)?.use { statement ->
@@ -70,13 +69,7 @@ class DatabaseManager(private val url: String,
             }
 
             connection?.commit()
-            println("Rezerwacja dodana pomyślnie dla użytkownika $accountId na wydarzenie $eventId, rząd $row, miejsce $col.")
-        } catch (e: Exception) {
-            connection?.rollback()
-            println("Błąd podczas dodawania rezerwacji: ${e.message}")
-        } finally {
-            connection?.autoCommit = true
-        }
+
     }
 
 
@@ -155,29 +148,6 @@ class DatabaseManager(private val url: String,
             }
             connection?.commit()
             connection?.autoCommit = true
-
         }
-
-
-
-
-        fun getSeatsForEvent(eventId: Int): Array<Array<Seat>> {
-        val sql = "SELECT `row`, `col`, is_available FROM seats WHERE event_id = ?"
-        val seatMap = Array(8) { Array(8) { Seat(true) } }
-
-        connection?.prepareStatement(sql)?.use { statement ->
-            statement.setInt(1, eventId)
-            val resultSet = statement.executeQuery()
-            while (resultSet.next()) {
-                val row = resultSet.getInt("row")
-                val col = resultSet.getInt("col")
-                val isAvailable = resultSet.getBoolean("is_available")
-                seatMap[row][col] = Seat(isAvailable)
-            }
-        }
-        return seatMap
-    }
-
-
 
 }

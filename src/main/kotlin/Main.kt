@@ -12,9 +12,6 @@ class TheaterBookingApp : Application() {
         user = "root",
         password = "panzer1979"
     )
-    //val connection = databaseManager.getConnection()
-
-    //private val accounts = mutableMapOf<String, Account>()
     private var loggedInAccount: Account? = null
 
     override fun start(primaryStage: Stage) {
@@ -162,7 +159,7 @@ class TheaterBookingApp : Application() {
         mainLayout.children.addAll(eventButtons)
         mainLayout.children.addAll(reservationHeader, reservationList)
 
-        val scene = Scene(mainLayout, 800.0, 600.0)
+        val scene = Scene(mainLayout, 1000.0, 600.0)
         primaryStage.scene = scene
         primaryStage.show()
     }
@@ -180,7 +177,7 @@ class TheaterBookingApp : Application() {
 
         val seatMap = GridPane()
         seatMap.hgap = 5.0
-        seatMap.vgap = 5.0
+        seatMap.vgap = 8.0
 
         val venue = event.venue
         val selectedSeats = mutableListOf<SeatPosition>()
@@ -192,7 +189,7 @@ class TheaterBookingApp : Application() {
 
         confirmButton.setOnAction {
             if (selectedSeats.isEmpty()) {
-                val alert = Alert(Alert.AlertType.WARNING)
+                val alert = Alert(Alert.AlertType.INFORMATION)
                 alert.title = "Brak wybranych miejsc"
                 alert.headerText = null
                 alert.contentText = "Nie wybrałeś żadnych miejsc do rezerwacji!"
@@ -212,17 +209,11 @@ class TheaterBookingApp : Application() {
                     val alert = Alert(Alert.AlertType.INFORMATION)
                     alert.title = "Rezerwacja potwierdzona"
                     alert.headerText = null
-                    alert.contentText = "Pomyślnie zarezerwowano miejsca!"
+                    alert.contentText = "Rezerwacja zakończona!"
                     alert.showAndWait()
 
                     bookingStage.close()
                     showMainMenu(primaryStage)
-                } ?: run {
-                    val alert = Alert(Alert.AlertType.ERROR)
-                    alert.title = "Błąd"
-                    alert.headerText = null
-                    alert.contentText = "Musisz być zalogowany, aby zarezerwować miejsca."
-                    alert.showAndWait()
                 }
             }
         }
@@ -236,7 +227,7 @@ class TheaterBookingApp : Application() {
 
         bookingLayout.children.addAll(header, seatMap, confirmButton, backButton)
 
-        val scene = Scene(bookingLayout, 800.0, 600.0)
+        val scene = Scene(bookingLayout, 1000.0, 600.0)
         bookingStage.scene = scene
         bookingStage.show()
     }
@@ -255,7 +246,6 @@ class TheaterBookingApp : Application() {
 
                 val seatButton = Button("Rząd ${row + 1}, Miejsce ${col + 1}")
                 seatButton.isDisable = !isAvailable
-
                 seatButton.style = if (isAvailable) "-fx-background-color: green;" else "-fx-background-color: red;"
 
                 seatButton.setOnAction {
