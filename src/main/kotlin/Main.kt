@@ -135,7 +135,6 @@ class TheaterBookingApp : Application() {
         val header = Label("Wybierz wydarzenie")
         header.style = "-fx-font-size: 16px; -fx-font-weight: bold;"
 
-        // Wyświetlanie wydarzeń
         val eventButtons = databaseManager.getEvents().map { event ->
             Button(event.name).apply {
                 setOnAction {
@@ -155,7 +154,7 @@ class TheaterBookingApp : Application() {
                 val cancelButton = Button("Anuluj").apply {
                     setOnAction {
                         databaseManager.cancelReservation(reservation.eventName, reservation.seats[0])
-                        showMainMenu(primaryStage) // Odśwież menu po anulowaniu
+                        showMainMenu(primaryStage)
                     }
                 }
                 val reservationEntry = VBox(10.0, seatLabel, cancelButton)
@@ -243,23 +242,23 @@ class TheaterBookingApp : Application() {
 
                     bookingStage.close()
                     showMainMenu(primaryStage)
-                } ?: run {
-                    val alert = Alert(Alert.AlertType.ERROR)
-                    alert.title = "Błąd"
-                    alert.headerText = null
-                    alert.contentText = "Musisz być zalogowany, aby zarezerwować miejsca."
-                    alert.showAndWait()
                 }
             }
         }
 
-        bookingLayout.children.addAll(header, seatMap, confirmButton)
+        val backButton = Button("Powrót")
+        backButton.style = "-fx-font-size: 14px; -fx-font-weight: bold;"
+        backButton.setOnAction {
+            bookingStage.close()
+            showMainMenu(primaryStage)
+        }
+
+        bookingLayout.children.addAll(header, seatMap, confirmButton, backButton)
 
         val scene = Scene(bookingLayout, 800.0, 600.0)
         bookingStage.scene = scene
         bookingStage.show()
     }
-
 
 
 }
